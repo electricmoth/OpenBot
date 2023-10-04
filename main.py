@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # OpenBot - auto RSPV for a meetup.com event
+# author: 0le4nder
 
 import os
 import time
@@ -27,6 +28,7 @@ class Bot:
 
     def login(self):
         """login to meetup.com"""
+        print("[+] Logging in...")
         time.sleep(1)
         driver.get(login_url)
         time.sleep(3)
@@ -44,18 +46,22 @@ class Bot:
             going = driver.find_element(By.XPATH, (going_xpath))
             text = going.get_attribute('innerHTML')
             if "going!" in text:
+                print("found.")
                 return True
         except Exception as e:
-            print(f"\n[-] err: {e}")
+            print("not found.")
+        return False
 
     def rsvp(self):
         """RSVP to target event"""
         attend_btn_id = "attend-event-btn-e-1"
         driver.get(self.evt_url)
+        print("[*] Checking for existing RSVP... ", end="")
         if self.check_if_going():
             print("\n[*] You have already RSVPd to this event.")
             return
         try:
+            print("[+] RSPVing to event...")
             # click 1st "attend" button
             attend_btn = wait.until(EC.element_to_be_clickable((By.ID, attend_btn_id)))
             attend_btn.click()
@@ -63,8 +69,10 @@ class Bot:
             attend_btn2 = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='attend-irl-btn']")))
             attend_btn2.click()
         except Exception as e:
-            print(f"\n[-] err: {e}")
-        else:
+            print(f"\n[-] Could not find target.")
+        finally:
+            driver.get(self.evt_url)
+            print("[*] Checking to confirm RSVP... ", end="")
             if self.check_if_going():
                 print("\n[+] OpenBot RSVPd to event!")
             else:
@@ -78,4 +86,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nGoodbye.")
