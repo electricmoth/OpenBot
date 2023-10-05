@@ -16,9 +16,10 @@ EMAIL = os.getenv("EMAIL")
 PASSWD = os.getenv("PASSWD")
 EVENT_URL = os.getenv("EVENT_URL")
 
-login_url = "https://www.meetup.com/login/"
 driver = webdriver.Firefox()
+login_url = "https://www.meetup.com/login/"
 wait = WebDriverWait(driver, timeout=2)
+
 
 class Bot:
     def __init__(self, email, passwd, evt_url):
@@ -41,14 +42,15 @@ class Bot:
 
     def check_if_going(self):
         """check if "you're going" is on target event page"""
-        going_xpath = "/html/body/div[1]/div[2]/div[2]/div[2]/main/div[3]/div[2]/div/div[2]/ul/li[1]/div/a/div[2]/div[2]/div/div/span"
+        # going_xpath = "/html/body/div[1]/div[2]/div[2]/div[2]/main/div[3]/div[2]/div/div[2]/ul/li[1]/div/a/div[2]/div[2]/div/div/span"
+        going_xpath = "//span[contains(text(), 'going!')]"
         try:
             going = driver.find_element(By.XPATH, (going_xpath))
-            text = going.get_attribute('innerHTML')
-            if "going!" in text:
-                print("found.")
-                return True
-        except Exception as e:
+            # text = going.get_attribute('innerHTML')
+            # if "going!" in text:
+            print("found.")
+            return True
+        except NoSuchElementException:
             print("not found.")
         return False
 
@@ -60,15 +62,16 @@ class Bot:
         if self.check_if_going():
             print("\n[*] You have already RSVPd to this event.")
             return
+
+        print("[+] RSPVing to event...")
         try:
-            print("[+] RSPVing to event...")
             # click 1st "attend" button
             attend_btn = wait.until(EC.element_to_be_clickable((By.ID, attend_btn_id)))
             attend_btn.click()
             # click 'attend-irl-btn'
             attend_btn2 = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='attend-irl-btn']")))
             attend_btn2.click()
-        except Exception as e:
+        except NoSuchElementException:
             print(f"\n[-] Could not find target.")
         finally:
             driver.get(self.evt_url)
